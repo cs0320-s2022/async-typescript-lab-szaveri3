@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import com.google.common.collect.ImmutableMap;
@@ -80,6 +81,7 @@ public final class Main {
     // Allows requests from any domain (i.e., any URL). This makes development
     // easier, but it’s not a good idea for deployment.
     Spark.before((request, response) -> response.header("Access-Control-Allow-Origin", "*"));
+    Spark.post("/match", new ResultsHandler());
   }
 
   /**
@@ -110,14 +112,23 @@ public final class Main {
       // TODO: Get JSONObject from req and use it to get the value of the sun, moon,
       // and rising
       // for generating matches
+      Gson gson = new Gson();
+      JsonObject json = gson.fromJson(req.body(), JsonObject.class);
+      String sun = json.get("sun").getAsString();
+      String moon = jsonObject.get("moon").getAsString();
+      String rising = jsonObject.get("rising").getAsString();
 
       // TODO: use the MatchMaker.makeMatches method to get matches
+      List<String> matches = MatchMaker.makeMatches(sun, moon, rising);
 
       // TODO: create an immutable map using the matches
+      Map unmodifiableMap = ImmutableMap.of(matches);
 
       // TODO: return a json of the suggestions (HINT: use GSON.toJson())
       Gson GSON = new Gson();
-      return null;
+      JsonArray jsonArray = GSON.toJsonTree(matches).getAsJsonArray();
+      return jsonArray.getAsString();
+
     }
   }
 }
